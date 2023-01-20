@@ -1,0 +1,37 @@
+{
+    "name": "iazaran/php-mvc",
+    "description": "Pure PHP Composer based MVC Framework",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Ismael Azaran",
+            "email": "eazaran@gmail.com"
+        }
+    ],
+    "license": "MIT",
+    "autoload": {
+        "files": [
+            "env.php",
+            "src/migrations.php",
+            "src/routes.php"
+        ],
+        "classmap": [
+            "src/"
+        ]
+    },
+    "config": {
+        "platform": {
+            "php": "8.1"
+        }
+    },
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "ext-iconv": "*",
+        "ext-curl": "*",
+        "phpmailer/phpmailer": "6.7.1",
+        "grpc/grpc": "1.42.0",
+        "google/protobuf": "3.21.12"
+    }
+}

@@ -1,0 +1,106 @@
+version: '3.2'
+
+services:
+    php-mvc-app-server:
+        image: nginx:alpine
+        container_name: php-mvc-app-server
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx_http1:/etc/nginx/conf.d/
+        ports:
+            - '8080:80'
+        networks:
+            - php-mvc-network
+
+    php-mvc-grpc-server:
+        image: nginx:alpine
+        container_name: php-mvc-grpc-server
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx_http2:/etc/nginx/conf.d/
+        ports:
+            - '8585:80'
+        networks:
+            - php-mvc-network
+
+    php-mvc-websocket-server:
+        image: nginx:alpine
+        container_name: php-mvc-websocket-server
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx_websocket:/etc/nginx/conf.d/
+        ports:
+            - '9090:80'
+        networks:
+            - php-mvc-network
+
+    php-mvc-app:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
+        container_name: php-mvc-app
+        user: www
+        command: php-fpm
+        volumes:
+            - ./:/var/www
+            - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.in
+        working_dir: /var/www
+        networks:
+            - php-mvc-network
+
+    php-mvc-cron:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
+        container_name: php-mvc-cron
+        user: root
+        command: cron start -f
+        volumes:
+            - ./:/var/www
+            - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.in
+        networks:
+            - php-mvc-network
+
+    php-mvc-websocket:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
+        container_name: php-mvc-websocket
+        user: www
+        command: php /var/www/websocket/index.php
+        volumes:
+            - ./:/var/www
+            - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.in
+        networks:
+            - php-mvc-network
+
+    php-mvc-db:
+        image: mysql
+        container_name: php-mvc-db
+        command: --default-authentication-plugin=mysql_native_password
+        volumes:
+            - dbdata:/var/lib/mysql
+            - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=mvc_db
+            - MYSQL_USER=mvc_user
+            - MYSQL_PASSWORD=mvc_Pass995!
+        ports:
+            - '3306:3306'
+        networks:
+            - php-mvc-network
+
+    php-mvc-memcached:
+        image: memcached:alpine
+        container_name: php-mvc-memcached
+        networks:
+            - php-mvc-network
+
+networks:
+    php-mvc-network:
+        driver: bridge
+
+volumes:
+    dbdata:
+        driver: local

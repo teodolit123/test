@@ -1,0 +1,30 @@
+FROM php:8.2-fpm
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    apt-utils build-essential curl zip zlib1g-dev unzip \
+    memcached libmemcached-dev \
+    libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
+    jpegoptim optipng pngquant gifsicle \
+    cron \
+    protobuf-compiler-grpc libprotobuf-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/
+RUN docker-php-ext-install mysqli pdo pdo_mysql gd sockets
+RUN pecl install -o -f memcached \
+    && docker-php-ext-enable memcached
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN groupadd -g 1000 www
+RUN useradd -u 1000 -ms /bin/bash -g www www
+
+COPY ./ /var/www
+COPY --chown=www:www . /var/www
+
+WORKDIR /var/www
+
+RUN composer install --ignore-platform-req=ext-grpc
+
+EXPOSE 9000
